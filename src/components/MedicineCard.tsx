@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { ShoppingCart, Plus, Check, Pill, Tag } from "lucide-react";
+import { ShoppingCart, Check, Pill, Tag } from "lucide-react";
+import Link from "next/link"; 
 
 interface MedicineProps {
   id: string;
@@ -10,14 +11,17 @@ interface MedicineProps {
   price: number;
   manufacturer: string;
   category: { name: string };
-  stock?: number; // Optional: যদি স্টক ম্যানেজ করো
+  stock?: number; // Optional: For stock management
 }
 
 export default function MedicineCard({ medicine }: { medicine: MedicineProps }) {
   const [isAdded, setIsAdded] = useState(false);
 
   // Add to Cart Function
-  const addToCart = () => {
+  const addToCart = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevents navigating to the details page when clicking the button
+    e.stopPropagation();
+
     const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
     const existingItem = existingCart.find((item: any) => item.medicineId === medicine.id);
 
@@ -35,15 +39,18 @@ export default function MedicineCard({ medicine }: { medicine: MedicineProps }) 
     }
 
     localStorage.setItem("cart", JSON.stringify(existingCart));
-    window.dispatchEvent(new Event("storage"));
+    window.dispatchEvent(new Event("storage")); // Trigger storage event for Navbar update
 
     // Button Animation Logic
     setIsAdded(true);
-    setTimeout(() => setIsAdded(false), 2000); // It will return to the previous state after 2 seconds.
+    setTimeout(() => setIsAdded(false), 2000); // Revert state after 2 seconds
   };
 
   return (
-    <div className="group relative bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col h-full">
+    <Link 
+      href={`/shop/${medicine.id}`} 
+      className="group relative bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col h-full block"
+    >
       
       {/* 1. Image / Icon Placeholder Area */}
       <div className="relative h-40 bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center overflow-hidden">
@@ -85,7 +92,7 @@ export default function MedicineCard({ medicine }: { medicine: MedicineProps }) 
           <button
             onClick={addToCart}
             className={`
-              flex items-center gap-2 px-4 py-2.5 rounded-full font-bold transition-all duration-300 shadow-md
+              flex items-center gap-2 px-4 py-2.5 rounded-full font-bold transition-all duration-300 shadow-md z-10
               ${isAdded 
                 ? "bg-green-500 text-white hover:bg-green-600" 
                 : "bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:shadow-blue-500/30 active:scale-95"
@@ -104,6 +111,6 @@ export default function MedicineCard({ medicine }: { medicine: MedicineProps }) 
           </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

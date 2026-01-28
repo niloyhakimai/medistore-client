@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "@/utils/api";
 import MedicineCard from "@/components/MedicineCard";
-import { Search, Filter, PackageOpen } from "lucide-react"; // Icon
+import { Search, PackageOpen } from "lucide-react"; // Icon
 
 export default function ShopPage() {
   const [medicines, setMedicines] = useState<any[]>([]);
@@ -62,14 +62,15 @@ export default function ShopPage() {
               placeholder="Search medicine or category..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-sm"
+              // 👇 নিচে text-gray-900 যোগ করা হয়েছে
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-sm"
             />
           </div>
         </div>
 
         {/* Content Area */}
         {loading ? (
-          //  Loading Skeleton (Data Load )
+          //  Loading Skeleton
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div key={i} className="bg-white rounded-2xl h-80 p-4 border border-gray-100 animate-pulse">

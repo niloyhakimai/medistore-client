@@ -70,7 +70,7 @@ export default function SellerDashboard() {
             
             {/* 1. Basic Info */}
             <div className="space-y-4">
-              <label className="block text-sm font-medium text-gray-700">Medicine Details</label>
+              <label className="block text-sm font-semibold text-gray-700">Medicine Details</label>
               
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -79,9 +79,9 @@ export default function SellerDashboard() {
                 <input 
                   name="name" 
                   placeholder="Medicine Name (e.g. Napa Extra)" 
-                  value={formData.name} 
+                  value={formData.name || ""} 
                   onChange={handleChange} 
-                  className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none" 
+                  className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none font-medium" 
                   required 
                 />
               </div>
@@ -93,10 +93,10 @@ export default function SellerDashboard() {
                 <textarea 
                   name="description" 
                   placeholder="Detailed description of the medicine..." 
-                  value={formData.description} 
+                  value={formData.description || ""} 
                   onChange={handleChange} 
                   rows={3}
-                  className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none resize-none" 
+                  className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none resize-none font-medium" 
                   required 
                 />
               </div>
@@ -105,7 +105,7 @@ export default function SellerDashboard() {
             {/* 2. Price & Stock Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Price</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <DollarSign className="text-gray-400" size={18} />
@@ -114,16 +114,16 @@ export default function SellerDashboard() {
                     name="price" 
                     type="number" 
                     placeholder="0.00" 
-                    value={formData.price} 
+                    value={formData.price || ""} 
                     onChange={handleChange} 
-                    className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none" 
+                    className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none font-medium" 
                     required 
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Stock Quantity</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Layers className="text-gray-400" size={18} />
@@ -132,9 +132,9 @@ export default function SellerDashboard() {
                     name="stock" 
                     type="number" 
                     placeholder="Available Units" 
-                    value={formData.stock} 
+                    value={formData.stock || ""} 
                     onChange={handleChange} 
-                    className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none" 
+                    className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none font-medium" 
                     required 
                   />
                 </div>
@@ -144,7 +144,7 @@ export default function SellerDashboard() {
             {/* 3. Manufacturer & Date Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Manufacturer</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Manufacturer</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Factory className="text-gray-400" size={18} />
@@ -152,16 +152,16 @@ export default function SellerDashboard() {
                   <input 
                     name="manufacturer" 
                     placeholder="Company Name" 
-                    value={formData.manufacturer} 
+                    value={formData.manufacturer || ""} 
                     onChange={handleChange} 
-                    className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none" 
+                    className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none font-medium" 
                     required 
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Expiry Date</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Calendar className="text-gray-400" size={18} />
@@ -169,9 +169,9 @@ export default function SellerDashboard() {
                   <input 
                     name="expiryDate" 
                     type="date" 
-                    value={formData.expiryDate} 
+                    value={formData.expiryDate || ""} 
                     onChange={handleChange} 
-                    className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none text-gray-500" 
+                    className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none font-medium" 
                     required 
                   />
                 </div>
@@ -180,12 +180,12 @@ export default function SellerDashboard() {
 
             {/* 4. Category */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
               <select 
                 name="categoryId" 
-                value={formData.categoryId} 
+                value={formData.categoryId || ""} 
                 onChange={handleChange} 
-                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none" 
+                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none font-medium" 
                 required
               >
                 <option value="">Select a Category</option>
