@@ -11,7 +11,7 @@ import {
 import Link from "next/link";
 
 export default function MedicineDetailsPage() {
-  const { id } = useParams(); // URL থেকে ID নেওয়া
+  const { id } = useParams(); 
   const router = useRouter();
   const [medicine, setMedicine] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +50,7 @@ export default function MedicineDetailsPage() {
     }
 
     localStorage.setItem("cart", JSON.stringify(existingCart));
-    window.dispatchEvent(new Event("storage")); // Navbar আপডেট করার জন্য
+    window.dispatchEvent(new Event("storage")); // Navbar Update
   };
 
   if (loading) {

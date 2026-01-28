@@ -62,7 +62,6 @@ export default function ShopPage() {
               placeholder="Search medicine or category..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              // 👇 নিচে text-gray-900 যোগ করা হয়েছে
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-sm"
             />
           </div>

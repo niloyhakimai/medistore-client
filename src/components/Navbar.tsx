@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Menu, X, ShoppingCart, User, LogOut, Pill } from "lucide-react"; // আইকন ইমপোর্ট
+import { Menu, X, ShoppingCart, User, LogOut, Pill } from "lucide-react"; 
 
 export default function Navbar() {
   const router = useRouter();
@@ -12,7 +12,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
 
-  // 1. চেক করি ইউজার লগিন আছে কিনা এবং কার্ট আপডেট
+  // 1. Check Login Status & Update Cart Count
   useEffect(() => {
     // Auth Check
     const token = localStorage.getItem("token");
@@ -20,18 +20,19 @@ export default function Navbar() {
     setIsLoggedIn(!!token);
     if (user?.role) setUserRole(user.role);
 
-    // Cart Count Check (Optional: For UI feel)
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCartCount(cart.length);
-
-    // Listen for storage events (add to cart updates)
-    const handleStorageChange = () => {
-      const updatedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-      setCartCount(updatedCart.length);
+    // Initial Cart Count Calculation
+    const updateCartCount = () => {
+      const savedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+      // ✅ FIX: Summing up quantities instead of just array length
+      const totalQty = savedCart.reduce((sum: number, item: any) => sum + item.quantity, 0);
+      setCartCount(totalQty);
     };
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    updateCartCount(); // Run on mount
+
+    // Listen for storage events (e.g., adding to cart from another component)
+    window.addEventListener("storage", updateCartCount);
+    return () => window.removeEventListener("storage", updateCartCount);
   }, []);
 
   const handleLogout = () => {
@@ -42,7 +43,7 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
   };
 
-  // ড্যাশবোর্ড লিংক ঠিক করা (Role অনুযায়ী)
+  // Get Dynamic Dashboard Link based on Role
   const getDashboardLink = () => {
     if (userRole === "ADMIN") return "/dashboard/admin";
     if (userRole === "SELLER") return "/dashboard/seller";
@@ -50,13 +51,13 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-100 transition-all duration-300">
+    <nav className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-100 transition-all duration-300 shadow-sm">
       <div className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
           
           {/* ✅ Logo Section */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="bg-blue-600 text-white p-2 rounded-lg group-hover:bg-blue-700 transition">
+            <div className="bg-blue-600 text-white p-2 rounded-lg group-hover:bg-blue-700 transition shadow-lg shadow-blue-200">
               <Pill size={24} />
             </div>
             <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-cyan-500">
@@ -66,14 +67,14 @@ export default function Navbar() {
 
           {/* ✅ Desktop Menu (Hidden on Mobile) */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-600 hover:text-blue-600 font-medium transition">Home</Link>
-            <Link href="/shop" className="text-gray-600 hover:text-blue-600 font-medium transition">Shop</Link>
+            <Link href="/" className="text-gray-600 hover:text-blue-600 font-medium transition hover:-translate-y-0.5 transform duration-200">Home</Link>
+            <Link href="/shop" className="text-gray-600 hover:text-blue-600 font-medium transition hover:-translate-y-0.5 transform duration-200">Shop</Link>
             
             {/* Cart Icon */}
-            <Link href="/cart" className="relative text-gray-600 hover:text-blue-600 transition">
-              <ShoppingCart size={24} />
+            <Link href="/cart" className="relative text-gray-600 hover:text-blue-600 transition group">
+              <ShoppingCart size={24} className="group-hover:scale-110 transition-transform" />
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full animate-bounce">
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full animate-bounce shadow-md">
                   {cartCount}
                 </span>
               )}
@@ -83,23 +84,23 @@ export default function Navbar() {
               <div className="flex items-center gap-4">
                 <Link 
                   href={getDashboardLink()} 
-                  className="flex items-center gap-2 text-gray-600 hover:text-blue-600 font-medium"
+                  className="flex items-center gap-2 text-gray-600 hover:text-blue-600 font-medium transition"
                 >
                   <User size={20} /> Dashboard
                 </Link>
                 <button 
                   onClick={handleLogout} 
-                  className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-full hover:bg-red-600 hover:text-white transition-all duration-300 font-medium border border-red-100"
+                  className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-full hover:bg-red-600 hover:text-white transition-all duration-300 font-medium border border-red-100 hover:shadow-md"
                 >
                   <LogOut size={18} /> Logout
                 </button>
               </div>
             ) : (
               <div className="flex items-center gap-4">
-                <Link href="/login" className="text-gray-600 hover:text-blue-600 font-medium">Login</Link>
+                <Link href="/login" className="text-gray-600 hover:text-blue-600 font-medium transition">Login</Link>
                 <Link 
                   href="/register" 
-                  className="bg-blue-600 text-white px-6 py-2.5 rounded-full font-bold shadow-lg hover:shadow-blue-500/30 hover:bg-blue-700 transition-all transform hover:-translate-y-0.5"
+                  className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-2.5 rounded-full font-bold shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition-all duration-300"
                 >
                   Register
                 </Link>
@@ -119,7 +120,7 @@ export default function Navbar() {
             </Link>
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-gray-700 hover:text-blue-600 transition"
+              className="text-gray-700 hover:text-blue-600 transition p-1"
             >
               {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
@@ -132,14 +133,14 @@ export default function Navbar() {
             <Link 
               href="/" 
               onClick={() => setIsMobileMenuOpen(false)}
-              className="block text-gray-700 hover:text-blue-600 font-medium p-2 rounded hover:bg-gray-50"
+              className="block text-gray-700 hover:text-blue-600 font-medium p-3 rounded-xl hover:bg-gray-50 transition"
             >
               Home
             </Link>
             <Link 
               href="/shop" 
               onClick={() => setIsMobileMenuOpen(false)}
-              className="block text-gray-700 hover:text-blue-600 font-medium p-2 rounded hover:bg-gray-50"
+              className="block text-gray-700 hover:text-blue-600 font-medium p-3 rounded-xl hover:bg-gray-50 transition"
             >
               Shop
             </Link>
@@ -149,13 +150,13 @@ export default function Navbar() {
                 <Link 
                   href={getDashboardLink()} 
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-gray-700 hover:text-blue-600 font-medium p-2 rounded hover:bg-gray-50"
+                  className="block text-gray-700 hover:text-blue-600 font-medium p-3 rounded-xl hover:bg-gray-50 transition"
                 >
                   Dashboard
                 </Link>
                 <button 
                   onClick={handleLogout} 
-                  className="w-full text-left text-red-600 font-medium p-2 rounded hover:bg-red-50 flex items-center gap-2"
+                  className="w-full text-left text-red-600 font-medium p-3 rounded-xl hover:bg-red-50 flex items-center gap-2 transition"
                 >
                   <LogOut size={18} /> Logout
                 </button>
@@ -165,14 +166,14 @@ export default function Navbar() {
                 <Link 
                   href="/login" 
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-center text-gray-700 border border-gray-200 py-2 rounded-lg font-medium hover:bg-gray-50"
+                  className="block text-center text-gray-700 border border-gray-200 py-3 rounded-xl font-medium hover:bg-gray-50 transition"
                 >
                   Login
                 </Link>
                 <Link 
                   href="/register" 
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-center bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700"
+                  className="block text-center bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 shadow-md transition"
                 >
                   Register Now
                 </Link>

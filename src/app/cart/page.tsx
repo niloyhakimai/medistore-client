@@ -5,7 +5,7 @@ import api from "@/utils/api";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Trash2, MapPin, ShoppingBag, ArrowRight, Pill, CreditCard, MinusCircle } from "lucide-react";
+import { Trash2, MapPin, ShoppingBag, ArrowRight, Pill, CreditCard, Loader2 } from "lucide-react";
 
 export default function CartPage() {
   const router = useRouter();
@@ -82,15 +82,15 @@ export default function CartPage() {
   // Empty State
   if (cart.length === 0) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gray-50">
+      <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gray-50 p-4">
         <div className="bg-white p-8 rounded-full shadow-sm mb-6">
           <ShoppingBag size={64} className="text-gray-300" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Your Cart is Empty</h2>
-        <p className="text-gray-500 mb-8">Looks like you haven't added any medicines yet.</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Cart is Empty</h2>
+        <p className="text-gray-500 mb-8 text-center max-w-md">Looks like you haven't added any medicines yet.</p>
         <Link 
           href="/shop" 
-          className="bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition flex items-center gap-2"
+          className="bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition flex items-center gap-2 shadow-lg shadow-blue-200"
         >
           Start Shopping <ArrowRight size={20} />
         </Link>
@@ -100,7 +100,7 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
           <ShoppingBag className="text-blue-600" /> Shopping Cart
         </h1>
@@ -118,16 +118,16 @@ export default function CartPage() {
                     <Pill size={32} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-gray-800">{item.name}</h3>
+                    <h3 className="font-bold text-lg text-gray-900">{item.name}</h3>
                     <p className="text-sm text-gray-500 flex items-center gap-2">
-                      Unit Price: <span className="font-semibold">${item.price}</span>
+                      Unit Price: <span className="font-semibold text-gray-700">৳{item.price}</span>
                     </p>
                   </div>
                 </div>
 
                 {/* Quantity & Total */}
                 <div className="flex items-center justify-between w-full sm:w-auto gap-6">
-                  <div className="bg-gray-100 px-3 py-1 rounded-lg text-sm font-medium text-gray-600">
+                  <div className="bg-gray-100 px-3 py-1 rounded-lg text-sm font-medium text-gray-700">
                     Qty: {item.quantity}
                   </div>
                   <div className="font-bold text-lg text-blue-600 w-24 text-right">
@@ -155,11 +155,11 @@ export default function CartPage() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-gray-600">
                   <span>Total Items</span>
-                  <span className="font-medium">{cart.length}</span>
+                  <span className="font-medium text-gray-900">{cart.length}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
-                  <span className="font-medium">${total.toFixed(2)}</span>
+                  <span className="font-medium text-gray-900">৳{total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery Charge</span>
@@ -167,17 +167,17 @@ export default function CartPage() {
                 </div>
                 <div className="border-t border-dashed border-gray-200 pt-3 flex justify-between text-xl font-bold text-gray-900">
                   <span>Total Amount</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>৳{total.toFixed(2)}</span>
                 </div>
               </div>
 
-              {/* Address Input */}
+              {/* Address Input - Fixed Text Color */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
                   <MapPin size={16} /> Shipping Address
                 </label>
                 <textarea
-                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm resize-none"
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm resize-none text-gray-900 placeholder-gray-400"
                   rows={3}
                   placeholder="House #123, Road #5, Dhaka..."
                   value={address}
@@ -191,10 +191,12 @@ export default function CartPage() {
                 className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg hover:shadow-blue-500/30 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
-                  "Processing..."
+                  <>
+                    <Loader2 className="animate-spin" size={20} /> Processing...
+                  </>
                 ) : (
                   <>
-                    Place Order (Cash on Delivery) <ArrowRight size={20} />
+                    Place Order (COD) <ArrowRight size={20} />
                   </>
                 )}
               </button>

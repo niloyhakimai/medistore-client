@@ -5,38 +5,54 @@ import api from "@/utils/api";
 import toast from "react-hot-toast";
 import { 
   Plus, Package, DollarSign, Layers, Calendar, 
-  Factory, FileText, Loader2, Store 
+  Factory, FileText, Loader2, Store, ShoppingBag, 
+  Truck, CheckCircle, Clock, XCircle 
 } from "lucide-react";
 
 export default function SellerDashboard() {
   const [categories, setCategories] = useState([]);
+  const [orders, setOrders] = useState<any[]>([]); // অর্ডার লিস্ট রাখার জন্য
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Add Medicine Form State
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    stock: "",
-    manufacturer: "",
-    expiryDate: "",
-    categoryId: ""
+    name: "", description: "", price: "", stock: "", manufacturer: "", expiryDate: "", categoryId: ""
   });
 
-  // Load Categories
+  // 1. Load Data (Categories + Seller Orders)
   useEffect(() => {
-    api.get("/categories").then((res) => setCategories(res.data.data));
+    const fetchData = async () => {
+      try {
+        // ক্যাটাগরি লোড
+        const catRes = await api.get("/categories");
+        setCategories(catRes.data.data);
+
+        // সেলারের অর্ডার লোড (যদি ব্যাকএন্ড রেডি থাকে)
+        try {
+          const orderRes = await api.get("/seller/orders");
+          setOrders(orderRes.data.data);
+        } catch (error) {
+          console.log("Order API not ready yet");
+        }
+      } catch (err) {
+        console.error("Failed to fetch data");
+      }
+    };
+    fetchData();
   }, []);
 
+  // 2. Handle Form Change
   const handleChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // 3. Handle Add Medicine Submit
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await api.post("/medicines", formData);
+      await api.post("/seller/medicines", formData);
       toast.success("Medicine Added Successfully! 💊");
-      // Reset form
       setFormData({ name: "", description: "", price: "", stock: "", manufacturer: "", expiryDate: "", categoryId: "" });
     } catch (err) {
       toast.error("Failed to add medicine");
@@ -45,9 +61,36 @@ export default function SellerDashboard() {
     }
   };
 
+  // 4. Handle Order Status Update
+  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+    try {
+      await api.patch(`/seller/orders/${orderId}`, { status: newStatus });
+      toast.success(`Order marked as ${newStatus}`);
+      
+      // লোকাল স্টেট আপডেট (যাতে পেজ রিফ্রেশ না লাগে)
+      setOrders((prev) => prev.map(order => 
+        order.id === orderId ? { ...order, status: newStatus } : order
+      ));
+    } catch (err) {
+      toast.error("Failed to update status");
+    }
+  };
+
+  // Helper: Status Color
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case 'PLACED': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'PROCESSING': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'SHIPPED': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'DELIVERED': return 'bg-green-100 text-green-800 border-green-200';
+      case 'CANCELLED': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         
         {/* Header */}
         <div className="text-center mb-10">
@@ -55,163 +98,179 @@ export default function SellerDashboard() {
             <Store size={32} />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Seller Dashboard</h1>
-          <p className="text-gray-500 mt-2">Manage your inventory and add new medicines.</p>
+          <p className="text-gray-500 mt-2">Manage your inventory & customer orders.</p>
         </div>
         
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="bg-blue-600 px-8 py-4">
-            <h2 className="text-white font-bold flex items-center gap-2 text-lg">
-              <Plus size={20} className="text-blue-200" /> Add New Medicine
-            </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* ================= LEFT SIDE: ADD MEDICINE FORM ================= */}
+          <div className="lg:col-span-1 h-fit">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden sticky top-6">
+              <div className="bg-blue-600 px-6 py-4">
+                <h2 className="text-white font-bold flex items-center gap-2 text-lg">
+                  <Plus size={20} className="text-blue-200" /> Add Medicine
+                </h2>
+              </div>
+
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                
+                {/* Name */}
+                <div className="relative">
+                   <Package className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                   <input 
+                     name="name" placeholder="Medicine Name" 
+                     value={formData.name || ""} onChange={handleChange} 
+                     className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none" required 
+                   />
+                </div>
+
+                {/* Description */}
+                <div className="relative">
+                   <FileText className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                   <textarea 
+                     name="description" placeholder="Description" rows={2}
+                     value={formData.description || ""} onChange={handleChange} 
+                     className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none resize-none" required 
+                   />
+                </div>
+
+                {/* Price & Stock */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                    <input 
+                      name="price" type="number" placeholder="Price" 
+                      value={formData.price || ""} onChange={handleChange} 
+                      className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none" required 
+                    />
+                  </div>
+                  <div className="relative">
+                    <Layers className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                    <input 
+                      name="stock" type="number" placeholder="Stock" 
+                      value={formData.stock || ""} onChange={handleChange} 
+                      className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none" required 
+                    />
+                  </div>
+                </div>
+
+                {/* Manufacturer */}
+                <div className="relative">
+                   <Factory className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                   <input 
+                     name="manufacturer" placeholder="Manufacturer" 
+                     value={formData.manufacturer || ""} onChange={handleChange} 
+                     className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none" required 
+                   />
+                </div>
+
+                {/* Date */}
+                <div className="relative">
+                   <Calendar className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                   <input 
+                     name="expiryDate" type="date" 
+                     value={formData.expiryDate || ""} onChange={handleChange} 
+                     className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none" required 
+                   />
+                </div>
+
+                {/* Category */}
+                <select 
+                  name="categoryId" value={formData.categoryId || ""} onChange={handleChange} 
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none" required
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((cat: any) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                </select>
+
+                <button 
+                  type="submit" disabled={isLoading}
+                  className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2"
+                >
+                  {isLoading ? <Loader2 className="animate-spin" /> : <><Plus size={20} /> Add Product</>}
+                </button>
+              </form>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-8 space-y-6">
-            
-            {/* 1. Basic Info */}
-            <div className="space-y-4">
-              <label className="block text-sm font-semibold text-gray-700">Medicine Details</label>
-              
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Package className="text-gray-400" size={18} />
-                </div>
-                <input 
-                  name="name" 
-                  placeholder="Medicine Name (e.g. Napa Extra)" 
-                  value={formData.name || ""} 
-                  onChange={handleChange} 
-                  className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none font-medium" 
-                  required 
-                />
+          {/* ================= RIGHT SIDE: ORDER MANAGEMENT ================= */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="bg-gray-900 px-6 py-4 flex justify-between items-center">
+                <h2 className="text-white font-bold flex items-center gap-2 text-lg">
+                  <ShoppingBag size={20} className="text-blue-400" /> Incoming Orders
+                </h2>
+                <span className="bg-blue-600 text-white text-xs px-2.5 py-1 rounded-full font-bold">
+                  {orders.length} Orders
+                </span>
               </div>
 
-              <div className="relative">
-                <div className="absolute top-3 left-3 pointer-events-none">
-                  <FileText className="text-gray-400" size={18} />
-                </div>
-                <textarea 
-                  name="description" 
-                  placeholder="Detailed description of the medicine..." 
-                  value={formData.description || ""} 
-                  onChange={handleChange} 
-                  rows={3}
-                  className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none resize-none font-medium" 
-                  required 
-                />
-              </div>
-            </div>
-
-            {/* 2. Price & Stock Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Price</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <DollarSign className="text-gray-400" size={18} />
-                  </div>
-                  <input 
-                    name="price" 
-                    type="number" 
-                    placeholder="0.00" 
-                    value={formData.price || ""} 
-                    onChange={handleChange} 
-                    className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none font-medium" 
-                    required 
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Stock Quantity</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Layers className="text-gray-400" size={18} />
-                  </div>
-                  <input 
-                    name="stock" 
-                    type="number" 
-                    placeholder="Available Units" 
-                    value={formData.stock || ""} 
-                    onChange={handleChange} 
-                    className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none font-medium" 
-                    required 
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Manufacturer & Date Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Manufacturer</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Factory className="text-gray-400" size={18} />
-                  </div>
-                  <input 
-                    name="manufacturer" 
-                    placeholder="Company Name" 
-                    value={formData.manufacturer || ""} 
-                    onChange={handleChange} 
-                    className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none font-medium" 
-                    required 
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Expiry Date</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calendar className="text-gray-400" size={18} />
-                  </div>
-                  <input 
-                    name="expiryDate" 
-                    type="date" 
-                    value={formData.expiryDate || ""} 
-                    onChange={handleChange} 
-                    className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none font-medium" 
-                    required 
-                  />
-                </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-bold border-b border-gray-100">
+                    <tr>
+                      <th className="p-4">Order ID</th>
+                      <th className="p-4">Customer</th>
+                      <th className="p-4">Items</th>
+                      <th className="p-4">Total</th>
+                      <th className="p-4">Update Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {orders.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="p-10 text-center text-gray-400 flex flex-col items-center">
+                           <ShoppingBag size={40} className="mb-2 opacity-20" />
+                           No orders received yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      orders.map((order) => (
+                        <tr key={order.id} className="hover:bg-gray-50 transition">
+                          <td className="p-4">
+                            <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-mono font-bold">
+                              #{order.id.slice(0, 6)}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                             <p className="font-bold text-gray-800 text-sm">{order.user?.name || "Guest"}</p>
+                             <p className="text-xs text-gray-400 truncate max-w-[150px]" title={order.address}>
+                               {order.address}
+                             </p>
+                          </td>
+                          <td className="p-4 text-sm text-gray-600">
+                             {order.items.map((item: any) => (
+                               <div key={item.id} className="flex items-center gap-1 mb-1">
+                                 <span className="font-bold text-gray-900">{item.quantity}x</span> 
+                                 <span className="truncate max-w-[100px]">{item.medicine?.name}</span>
+                               </div>
+                             ))}
+                          </td>
+                          <td className="p-4 font-bold text-gray-800">${order.totalAmount}</td>
+                          <td className="p-4">
+                            <select 
+                              value={order.status}
+                              onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                              className={`p-2 rounded-lg text-xs font-bold border outline-none cursor-pointer appearance-none transition-all w-32 text-center
+                                ${getStatusColor(order.status)}
+                              `}
+                            >
+                              <option value="PLACED">Placed</option>
+                              <option value="PROCESSING">Processing</option>
+                              <option value="SHIPPED">Shipped</option>
+                              <option value="DELIVERED">Delivered</option>
+                              <option value="CANCELLED">Cancelled</option>
+                            </select>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
+          </div>
 
-            {/* 4. Category */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
-              <select 
-                name="categoryId" 
-                value={formData.categoryId || ""} 
-                onChange={handleChange} 
-                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none font-medium" 
-                required
-              >
-                <option value="">Select a Category</option>
-                {categories.map((cat: any) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Submit Button */}
-            <button 
-              type="submit" 
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-4 rounded-xl hover:shadow-lg hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="animate-spin" size={20} /> Adding Medicine...
-                </>
-              ) : (
-                <>
-                  <Plus size={20} /> Add to Inventory
-                </>
-              )}
-            </button>
-          </form>
         </div>
       </div>
     </div>

@@ -93,16 +93,16 @@ export default function CustomerDashboard() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="animate-spin text-blue-600" size={48} />
-          <p className="text-gray-500 font-medium">Loading your orders...</p>
-        </div>
+if (loading) {
+  return (
+    <div className="flex h-screen items-center justify-center bg-gray-50">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="animate-spin text-blue-600" size={48} />
+        <p className="text-gray-500 font-medium">Loading your orders...</p>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
