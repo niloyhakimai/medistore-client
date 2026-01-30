@@ -4,7 +4,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { ShoppingCart, Check, Pill, Tag } from "lucide-react";
 import Link from "next/link"; 
-import { useRouter } from "next/navigation"; // 👈 Import Router
+import { useRouter } from "next/navigation";
 
 interface MedicineProps {
   id: string;
@@ -17,14 +17,14 @@ interface MedicineProps {
 
 export default function MedicineCard({ medicine }: { medicine: MedicineProps }) {
   const [isAdded, setIsAdded] = useState(false);
-  const router = useRouter(); // 👈 Initialize Router
+  const router = useRouter(); 
 
   // Add to Cart Function
   const addToCart = (e: React.MouseEvent) => {
     e.preventDefault(); 
     e.stopPropagation();
 
-    // ✅ 1. Check if User is Logged In
+    // 1. Check if User is Logged In
     const token = localStorage.getItem("token");
     if (!token) {
       toast.error("Please login to add items! 🔒");
@@ -32,7 +32,7 @@ export default function MedicineCard({ medicine }: { medicine: MedicineProps }) 
       return;
     }
 
-    // ✅ 2. Proceed to Add to Cart
+    //  2. Proceed to Add to Cart
     const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
     const existingItem = existingCart.find((item: any) => item.medicineId === medicine.id);
 

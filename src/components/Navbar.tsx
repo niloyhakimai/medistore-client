@@ -41,10 +41,10 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    localStorage.removeItem("cart"); // 🗑️ কার্ট ক্লিয়ার করা হলো
+    localStorage.removeItem("cart"); 
 
     setIsLoggedIn(false);
-    setCartCount(0); // 🔄 UI রিসেট
+    setCartCount(0);
     setUserRole("CUSTOMER");
     
     router.push("/login");
@@ -66,7 +66,7 @@ export default function Navbar() {
       <div className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
           
-          {/* ✅ Logo Section */}
+          {/* Logo Section */}
           <Link href="/" className="flex items-center gap-2 group">
             <div className="bg-blue-600 text-white p-2 rounded-lg group-hover:bg-blue-700 transition shadow-lg shadow-blue-200">
               <Pill size={24} />
@@ -76,7 +76,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* ✅ Desktop Menu (Hidden on Mobile) */}
+          {/*  Desktop Menu (Hidden on Mobile) */}
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/" className="text-gray-600 hover:text-blue-600 font-medium transition hover:-translate-y-0.5 transform duration-200">Home</Link>
             <Link href="/shop" className="text-gray-600 hover:text-blue-600 font-medium transition hover:-translate-y-0.5 transform duration-200">Shop</Link>
@@ -119,7 +119,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* ✅ Mobile Menu Button (Hamburger) */}
+          {/*  Mobile Menu Button (Hamburger) */}
           <div className="md:hidden flex items-center gap-4">
              <Link href="/cart" className="relative text-gray-600 hover:text-blue-600 transition mr-2">
               <ShoppingCart size={24} />
@@ -138,7 +138,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* ✅ Mobile Dropdown Menu */}
+        {/*  Mobile Dropdown Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 space-y-4 border-t pt-4 animate-in slide-in-from-top-5 fade-in duration-300">
             <Link 

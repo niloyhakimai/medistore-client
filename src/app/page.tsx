@@ -1,6 +1,5 @@
 "use client";
-
-import { useEffect, useState } from "react"; // 👈 Import Hooks
+import { useEffect, useState } from "react"; 
 import Link from "next/link";
 import { ArrowRight, Truck, ShieldCheck, PhoneCall, Star, CheckCircle } from "lucide-react";
 import Footer from "@/components/Footer";
@@ -8,10 +7,10 @@ import Footer from "@/components/Footer";
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // ✅ Check Login Status
+  //  Check Login Status
   useEffect(() => {
     const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token); // Token থাকলে true, না থাকলে false
+    setIsLoggedIn(!!token); 
   }, []);
 
   return (
@@ -42,7 +41,7 @@ export default function Home() {
               Order Medicine <ArrowRight size={20} />
             </Link>
 
-            {/* ✅ Hide 'Create Account' if logged in */}
+            {/* Hide 'Create Account' if logged in */}
             {!isLoggedIn && (
               <Link
                 href="/register"
@@ -169,7 +168,7 @@ export default function Home() {
             Experience the best healthcare service. Use code <span className="bg-gray-800 text-yellow-400 px-2 py-1 rounded font-mono border border-gray-700">WELCOME10</span> at checkout.
           </p>
           
-          {/* ✅ Change CTA based on login status */}
+          {/*  Change CTA based on login status */}
           {!isLoggedIn ? (
             <Link
               href="/register"

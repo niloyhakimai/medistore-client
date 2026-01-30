@@ -32,10 +32,10 @@ export default function LoginPage() {
 
       toast.success(`Welcome back, ${res.data.user.name}! 🚀`);
 
-      // ✅ Update Navbar State
+      // Update Navbar State
       window.dispatchEvent(new Event("storage"));
 
-      // ✅ Updated Redirect Logic
+      //  Updated Redirect Logic
       const role = res.data.user.role;
       
       if (role === "ADMIN") {
@@ -43,7 +43,7 @@ export default function LoginPage() {
       } else if (role === "SELLER") {
         router.push("/dashboard/seller");
       } else {
-        router.push("/"); // ✅ CUSTOMER -> Home Page
+        router.push("/"); //  CUSTOMER -> Home Page
       }
 
     } catch (err: any) {

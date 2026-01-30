@@ -55,7 +55,7 @@ export default function CartPage() {
       const res = await api.post("/orders", orderData);
 
       if (res.status === 201) {
-        // ✅ Success Message Show
+        //  Success Message Show
         toast.success("Order Placed Successfully! 🎉 Redirecting...");
         
         // Clear Cart Data
@@ -63,7 +63,7 @@ export default function CartPage() {
         setCart([]);
         window.dispatchEvent(new Event("storage")); // Update navbar cart count
         
-        // ⏳ 2 Seconds Delay before Redirect
+        // 2 Seconds Delay before Redirect
         setTimeout(() => {
            router.push("/dashboard/customer");
         }, 2000);
