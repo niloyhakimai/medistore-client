@@ -12,38 +12,49 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
 
-  // 1. Check Login Status & Update Cart Count
-  useEffect(() => {
-    // Auth Check
+  // 1. Sync State (Auth + Cart)
+  const syncState = () => {
+    // A. Check Auth
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     setIsLoggedIn(!!token);
     if (user?.role) setUserRole(user.role);
 
-    // Initial Cart Count Calculation
-    const updateCartCount = () => {
-      const savedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-      // ✅ FIX: Summing up quantities instead of just array length
-      const totalQty = savedCart.reduce((sum: number, item: any) => sum + item.quantity, 0);
-      setCartCount(totalQty);
+    // B. Check Cart Count (Sum of Quantities)
+    const savedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const totalQty = savedCart.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    setCartCount(totalQty);
+  };
+
+  useEffect(() => {
+    syncState(); // Initial Load
+
+    // Listen for global storage events (Login, Logout, Add to Cart)
+    window.addEventListener("storage", syncState);
+    
+    return () => {
+      window.removeEventListener("storage", syncState);
     };
-
-    updateCartCount(); // Run on mount
-
-    // Listen for storage events (e.g., adding to cart from another component)
-    window.addEventListener("storage", updateCartCount);
-    return () => window.removeEventListener("storage", updateCartCount);
   }, []);
 
+  // 2. Handle Logout (Reset Everything)
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("cart"); // 🗑️ কার্ট ক্লিয়ার করা হলো
+
     setIsLoggedIn(false);
+    setCartCount(0); // 🔄 UI রিসেট
+    setUserRole("CUSTOMER");
+    
     router.push("/login");
     setIsMobileMenuOpen(false);
+    
+    // Notify other components
+    window.dispatchEvent(new Event("storage"));
   };
 
-  // Get Dynamic Dashboard Link based on Role
+  // 3. Dynamic Dashboard Link
   const getDashboardLink = () => {
     if (userRole === "ADMIN") return "/dashboard/admin";
     if (userRole === "SELLER") return "/dashboard/seller";

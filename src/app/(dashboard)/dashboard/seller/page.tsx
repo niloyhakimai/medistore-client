@@ -6,36 +6,39 @@ import toast from "react-hot-toast";
 import { 
   Plus, Package, DollarSign, Layers, Calendar, 
   Factory, FileText, Loader2, Store, ShoppingBag, 
-  Truck, CheckCircle, Clock, XCircle 
 } from "lucide-react";
 
 export default function SellerDashboard() {
   const [categories, setCategories] = useState([]);
-  const [orders, setOrders] = useState<any[]>([]); // অর্ডার লিস্ট রাখার জন্য
+  const [orders, setOrders] = useState<any[]>([]); 
   const [isLoading, setIsLoading] = useState(false);
   
-  // Add Medicine Form State
-  const [formData, setFormData] = useState({
+  // Initial Form State
+  const initialFormState = {
     name: "", description: "", price: "", stock: "", manufacturer: "", expiryDate: "", categoryId: ""
-  });
+  };
+  const [formData, setFormData] = useState(initialFormState);
 
-  // 1. Load Data (Categories + Seller Orders)
+  // 1. Load Data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // ক্যাটাগরি লোড
         const catRes = await api.get("/categories");
         setCategories(catRes.data.data);
 
-        // সেলারের অর্ডার লোড (যদি ব্যাকএন্ড রেডি থাকে)
+        // Fetch Orders
         try {
           const orderRes = await api.get("/seller/orders");
-          setOrders(orderRes.data.data);
+          // ✅ FIX: Sort orders by date (Newest First)
+          const sortedOrders = orderRes.data.data.sort((a: any, b: any) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          setOrders(sortedOrders);
         } catch (error) {
-          console.log("Order API not ready yet");
+          console.log("No orders found");
         }
       } catch (err) {
-        console.error("Failed to fetch data");
+        console.error("Failed to fetch initial data");
       }
     };
     fetchData();
@@ -46,16 +49,20 @@ export default function SellerDashboard() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 3. Handle Add Medicine Submit
+  // 3. Handle Add Medicine
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setIsLoading(true);
+    
     try {
-      await api.post("/seller/medicines", formData);
-      toast.success("Medicine Added Successfully! 💊");
-      setFormData({ name: "", description: "", price: "", stock: "", manufacturer: "", expiryDate: "", categoryId: "" });
-    } catch (err) {
-      toast.error("Failed to add medicine");
+      const res = await api.post("/seller/medicines", formData);
+      if (res.status === 201 || res.status === 200) {
+        toast.success("Medicine Added Successfully! 💊");
+        setFormData(initialFormState); // Reset Form
+      }
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Failed to add medicine";
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -63,27 +70,31 @@ export default function SellerDashboard() {
 
   // 4. Handle Order Status Update
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+    // Show Loading Toast
+    const toastId = toast.loading("Updating status...");
+
     try {
       await api.patch(`/seller/orders/${orderId}`, { status: newStatus });
-      toast.success(`Order marked as ${newStatus}`);
       
-      // লোকাল স্টেট আপডেট (যাতে পেজ রিফ্রেশ না লাগে)
+      // Update UI immediately
       setOrders((prev) => prev.map(order => 
         order.id === orderId ? { ...order, status: newStatus } : order
       ));
+
+      toast.success(`Order marked as ${newStatus}`, { id: toastId });
     } catch (err) {
-      toast.error("Failed to update status");
+      toast.error("Failed to update status", { id: toastId });
     }
   };
 
-  // Helper: Status Color
+  // Helper: Status Color Badge
   const getStatusColor = (status: string) => {
     switch(status) {
-      case 'PLACED': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'PROCESSING': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'SHIPPED': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'DELIVERED': return 'bg-green-100 text-green-800 border-green-200';
-      case 'CANCELLED': return 'bg-red-100 text-red-800 border-red-200';
+      case 'PLACED': return 'bg-yellow-100 text-yellow-700 border-yellow-200'; 
+      case 'PROCESSING': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'SHIPPED': return 'bg-purple-100 text-purple-700 border-purple-200';
+      case 'DELIVERED': return 'bg-green-100 text-green-700 border-green-200'; 
+      case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -94,7 +105,7 @@ export default function SellerDashboard() {
         
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
+          <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 shadow-sm">
             <Store size={32} />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Seller Dashboard</h1>
@@ -113,80 +124,37 @@ export default function SellerDashboard() {
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                
-                {/* Name */}
                 <div className="relative">
                    <Package className="absolute left-3 top-3.5 text-gray-400" size={18} />
-                   <input 
-                     name="name" placeholder="Medicine Name" 
-                     value={formData.name || ""} onChange={handleChange} 
-                     className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none" required 
-                   />
+                   <input name="name" placeholder="Medicine Name" value={formData.name} onChange={handleChange} className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none transition" required />
                 </div>
-
-                {/* Description */}
                 <div className="relative">
                    <FileText className="absolute left-3 top-3.5 text-gray-400" size={18} />
-                   <textarea 
-                     name="description" placeholder="Description" rows={2}
-                     value={formData.description || ""} onChange={handleChange} 
-                     className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none resize-none" required 
-                   />
+                   <textarea name="description" placeholder="Description" rows={2} value={formData.description} onChange={handleChange} className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none resize-none transition" required />
                 </div>
-
-                {/* Price & Stock */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-3.5 text-gray-400" size={18} />
-                    <input 
-                      name="price" type="number" placeholder="Price" 
-                      value={formData.price || ""} onChange={handleChange} 
-                      className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none" required 
-                    />
+                    <input name="price" type="number" placeholder="Price" value={formData.price} onChange={handleChange} className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none transition" required />
                   </div>
                   <div className="relative">
                     <Layers className="absolute left-3 top-3.5 text-gray-400" size={18} />
-                    <input 
-                      name="stock" type="number" placeholder="Stock" 
-                      value={formData.stock || ""} onChange={handleChange} 
-                      className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none" required 
-                    />
+                    <input name="stock" type="number" placeholder="Stock" value={formData.stock} onChange={handleChange} className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none transition" required />
                   </div>
                 </div>
-
-                {/* Manufacturer */}
                 <div className="relative">
                    <Factory className="absolute left-3 top-3.5 text-gray-400" size={18} />
-                   <input 
-                     name="manufacturer" placeholder="Manufacturer" 
-                     value={formData.manufacturer || ""} onChange={handleChange} 
-                     className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none" required 
-                   />
+                   <input name="manufacturer" placeholder="Manufacturer" value={formData.manufacturer} onChange={handleChange} className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none transition" required />
                 </div>
-
-                {/* Date */}
                 <div className="relative">
                    <Calendar className="absolute left-3 top-3.5 text-gray-400" size={18} />
-                   <input 
-                     name="expiryDate" type="date" 
-                     value={formData.expiryDate || ""} onChange={handleChange} 
-                     className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none" required 
-                   />
+                   <input name="expiryDate" type="date" value={formData.expiryDate} onChange={handleChange} className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none transition" required />
                 </div>
-
-                {/* Category */}
-                <select 
-                  name="categoryId" value={formData.categoryId || ""} onChange={handleChange} 
-                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none" required
-                >
+                <select name="categoryId" value={formData.categoryId} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 outline-none transition cursor-pointer" required>
                   <option value="">Select Category</option>
                   {categories.map((cat: any) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                 </select>
-
-                <button 
-                  type="submit" disabled={isLoading}
-                  className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2"
-                >
+                <button type="submit" disabled={isLoading} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 transform hover:-translate-y-0.5">
                   {isLoading ? <Loader2 className="animate-spin" /> : <><Plus size={20} /> Add Product</>}
                 </button>
               </form>
@@ -246,21 +214,24 @@ export default function SellerDashboard() {
                                </div>
                              ))}
                           </td>
-                          <td className="p-4 font-bold text-gray-800">${order.totalAmount}</td>
+                          <td className="p-4 font-bold text-gray-800">৳{order.totalAmount}</td>
                           <td className="p-4">
-                            <select 
-                              value={order.status}
-                              onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
-                              className={`p-2 rounded-lg text-xs font-bold border outline-none cursor-pointer appearance-none transition-all w-32 text-center
-                                ${getStatusColor(order.status)}
-                              `}
-                            >
-                              <option value="PLACED">Placed</option>
-                              <option value="PROCESSING">Processing</option>
-                              <option value="SHIPPED">Shipped</option>
-                              <option value="DELIVERED">Delivered</option>
-                              <option value="CANCELLED">Cancelled</option>
-                            </select>
+                            {/* STATUS DROPDOWN */}
+                            <div className="relative">
+                              <select 
+                                value={order.status}
+                                onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                                className={`p-2 rounded-lg text-xs font-bold border outline-none cursor-pointer appearance-none transition-all w-32 text-center shadow-sm focus:ring-2 focus:ring-offset-1 focus:ring-blue-400
+                                  ${getStatusColor(order.status)}
+                                `}
+                              >
+                                <option value="PLACED">Placed</option>
+                                <option value="PROCESSING">Processing</option>
+                                <option value="SHIPPED">Shipped</option>
+                                <option value="DELIVERED">Delivered</option>
+                                <option value="CANCELLED">Cancelled</option>
+                              </select>
+                            </div>
                           </td>
                         </tr>
                       ))

@@ -7,10 +7,10 @@ const api = axios.create({
   },
 });
 
-// টোকেন অটোমেটিক পাঠানোর জন্য (Interceptors)
+// (Interceptors)
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token'); // ব্রাউজার থেকে টোকেন নেবে
+    const token = localStorage.getItem('token'); 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -1,11 +1,23 @@
+"use client";
+
+import { useEffect, useState } from "react"; // 👈 Import Hooks
 import Link from "next/link";
 import { ArrowRight, Truck, ShieldCheck, PhoneCall, Star, CheckCircle } from "lucide-react";
+import Footer from "@/components/Footer";
 
 export default function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // ✅ Check Login Status
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token); // Token থাকলে true, না থাকলে false
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50 flex flex-col">
       
-      {/* 1. Hero Section (Modern Gradient & Layout) */}
+      {/* 1. Hero Section */}
       <header className="relative bg-white overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 opacity-10 blur-3xl"></div>
         <div className="container mx-auto px-6 py-24 md:py-32 relative z-10 text-center">
@@ -21,6 +33,7 @@ export default function Home() {
           <p className="text-lg md:text-xl mb-10 text-gray-600 max-w-2xl mx-auto">
             Get 100% authentic medicines delivered to your doorstep. Trusted by over 10,000+ customers for genuine healthcare products.
           </p>
+          
           <div className="flex flex-col md:flex-row justify-center gap-4">
             <Link
               href="/shop"
@@ -28,17 +41,21 @@ export default function Home() {
             >
               Order Medicine <ArrowRight size={20} />
             </Link>
-            <Link
-              href="/register"
-              className="flex items-center justify-center gap-2 bg-white text-gray-800 border border-gray-200 font-bold py-4 px-8 rounded-full hover:bg-gray-50 hover:border-blue-300 transition-all duration-300"
-            >
-              Create Account
-            </Link>
+
+            {/* ✅ Hide 'Create Account' if logged in */}
+            {!isLoggedIn && (
+              <Link
+                href="/register"
+                className="flex items-center justify-center gap-2 bg-white text-gray-800 border border-gray-200 font-bold py-4 px-8 rounded-full hover:bg-gray-50 hover:border-blue-300 transition-all duration-300"
+              >
+                Create Account
+              </Link>
+            )}
           </div>
         </div>
       </header>
 
-      {/* 2. Stats Section (Trust Building) */}
+      {/* 2. Stats Section */}
       <section className="border-y border-gray-100 bg-white">
         <div className="container mx-auto px-6 py-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
@@ -57,7 +74,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3. Features Section (Why Choose Us) */}
+      {/* 3. Features Section */}
       <section className="py-20 container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose MediStore?</h2>
@@ -65,7 +82,6 @@ export default function Home() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Feature 1 */}
           <div className="group bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all duration-300 hover:-translate-y-2">
             <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-6 group-hover:bg-blue-600 group-hover:text-white transition-colors">
               <Truck size={28} />
@@ -74,7 +90,6 @@ export default function Home() {
             <p className="text-gray-500 leading-relaxed">We understand urgency. Get your essential medicines delivered within hours, not days.</p>
           </div>
 
-          {/* Feature 2 */}
           <div className="group bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-green-200 transition-all duration-300 hover:-translate-y-2">
             <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6 group-hover:bg-green-600 group-hover:text-white transition-colors">
               <ShieldCheck size={28} />
@@ -83,7 +98,6 @@ export default function Home() {
             <p className="text-gray-500 leading-relaxed">No compromise on health. We source directly from authorized manufacturers.</p>
           </div>
 
-          {/* Feature 3 */}
           <div className="group bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-purple-200 transition-all duration-300 hover:-translate-y-2">
             <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 mb-6 group-hover:bg-purple-600 group-hover:text-white transition-colors">
               <PhoneCall size={28} />
@@ -94,9 +108,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. Popular Categories (Modern Cards) */}
+      {/* 4. Popular Categories */}
       <section className="bg-gray-50 py-20 relative overflow-hidden">
-        {/* Decorative Background Blob */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
 
@@ -139,9 +152,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 5. Discount CTA (Modern Dark Theme) */}
+      {/* 5. Discount CTA */}
       <section className="py-24 bg-gray-900 text-white relative overflow-hidden">
-        {/* Abstract shapes */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
            <div className="absolute -top-[50%] -left-[10%] w-[500px] h-[500px] rounded-full bg-blue-600 opacity-20 blur-[100px]"></div>
            <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-cyan-500 opacity-20 blur-[100px]"></div>
@@ -156,14 +168,27 @@ export default function Home() {
           <p className="text-gray-400 mb-10 text-lg max-w-xl mx-auto">
             Experience the best healthcare service. Use code <span className="bg-gray-800 text-yellow-400 px-2 py-1 rounded font-mono border border-gray-700">WELCOME10</span> at checkout.
           </p>
-          <Link
-            href="/register"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold py-4 px-10 rounded-full shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 transform hover:-translate-y-1"
-          >
-            Create Free Account <CheckCircle size={20} />
-          </Link>
+          
+          {/* ✅ Change CTA based on login status */}
+          {!isLoggedIn ? (
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold py-4 px-10 rounded-full shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 transform hover:-translate-y-1"
+            >
+              Create Free Account <CheckCircle size={20} />
+            </Link>
+          ) : (
+            <Link
+              href="/shop"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold py-4 px-10 rounded-full shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 transform hover:-translate-y-1"
+            >
+              Start Shopping <ArrowRight size={20} />
+            </Link>
+          )}
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }

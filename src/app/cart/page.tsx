@@ -55,18 +55,25 @@ export default function CartPage() {
       const res = await api.post("/orders", orderData);
 
       if (res.status === 201) {
-        toast.success("Order Placed Successfully! 🎉");
+        // ✅ Success Message Show
+        toast.success("Order Placed Successfully! 🎉 Redirecting...");
+        
+        // Clear Cart Data
         localStorage.removeItem("cart");
         setCart([]);
         window.dispatchEvent(new Event("storage")); // Update navbar cart count
-        router.push("/dashboard/customer");
+        
+        // ⏳ 2 Seconds Delay before Redirect
+        setTimeout(() => {
+           router.push("/dashboard/customer");
+        }, 2000);
       }
     } catch (err: any) {
       console.log(err);
       toast.error("Failed to place order. Try again.");
-    } finally {
-      setIsLoading(false);
-    }
+      setIsLoading(false); // Stop loading only if error occurs
+    } 
+    // Note: We removed 'finally' block so loading spinner stays during the 2s delay
   };
 
   // 3. Remove Item
@@ -131,7 +138,7 @@ export default function CartPage() {
                     Qty: {item.quantity}
                   </div>
                   <div className="font-bold text-lg text-blue-600 w-24 text-right">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    ৳{(item.price * item.quantity).toFixed(2)}
                   </div>
                   <button 
                     onClick={() => removeItem(item.medicineId)}
@@ -171,7 +178,7 @@ export default function CartPage() {
                 </div>
               </div>
 
-              {/* Address Input - Fixed Text Color */}
+              {/* Address Input */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
                   <MapPin size={16} /> Shipping Address

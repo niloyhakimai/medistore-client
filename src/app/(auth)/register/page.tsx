@@ -14,7 +14,7 @@ export default function RegisterPage() {
     name: "",
     email: "",
     password: "",
-    role: "CUSTOMER",
+    role: "CUSTOMER", // Default Role
   });
 
   const handleChange = (e: any) => {
@@ -25,13 +25,17 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
+      // API call to register
       const res = await api.post("/auth/register", formData);
+      
       if (res.status === 201) {
         toast.success("Registration Successful! Please Login.");
-        router.push("/login");
+        router.push("/login"); // Redirect to login page
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Registration Failed");
+      // Show specific error from backend
+      const errorMsg = err.response?.data?.message || "Registration Failed";
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -48,7 +52,7 @@ export default function RegisterPage() {
         
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-4 shadow-sm">
             <ShieldCheck size={32} />
           </div>
           <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
@@ -66,10 +70,10 @@ export default function RegisterPage() {
               </div>
               <input
                 name="name"
-                value={formData.name || ""}// ✅ Fixed: Controlled Input
+                value={formData.name || ""}
                 placeholder="John Doe"
                 onChange={handleChange}
-                className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition" // ✅ Fixed: Text Color
+                className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition font-medium"
                 required
               />
             </div>
@@ -88,7 +92,7 @@ export default function RegisterPage() {
                 value={formData.email || ""} 
                 placeholder="john@example.com"
                 onChange={handleChange}
-                className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition" // ✅ Fixed
+                className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition font-medium"
                 required
               />
             </div>
@@ -104,10 +108,10 @@ export default function RegisterPage() {
               <input
                 name="password"
                 type="password"
-               value={formData.password || ""} // ✅ Fixed
+                value={formData.password || ""}
                 placeholder="••••••••"
                 onChange={handleChange}
-                className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition" // ✅ Fixed
+                className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition font-medium"
                 required
               />
             </div>
@@ -122,9 +126,9 @@ export default function RegisterPage() {
               </div>
               <select 
                 name="role" 
-                value={formData.role || "CUSTOMER"} // ✅ Fixed
+                value={formData.role || "CUSTOMER"} 
                 onChange={handleChange} 
-                className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition appearance-none" // ✅ Fixed
+                className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition appearance-none font-medium cursor-pointer"
               >
                 <option value="CUSTOMER">Customer (Buyer)</option>
                 <option value="SELLER">Seller (Pharmacist)</option>
@@ -136,7 +140,7 @@ export default function RegisterPage() {
           <button 
             type="submit" 
             disabled={isLoading}
-            className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-500/30 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+            className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-500/30 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-4 transform hover:-translate-y-0.5 duration-200"
           >
             {isLoading ? (
               <>

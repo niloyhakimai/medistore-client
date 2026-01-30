@@ -4,6 +4,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { ShoppingCart, Check, Pill, Tag } from "lucide-react";
 import Link from "next/link"; 
+import { useRouter } from "next/navigation"; // 👈 Import Router
 
 interface MedicineProps {
   id: string;
@@ -11,17 +12,27 @@ interface MedicineProps {
   price: number;
   manufacturer: string;
   category: { name: string };
-  stock?: number; // Optional: For stock management
+  stock?: number;
 }
 
 export default function MedicineCard({ medicine }: { medicine: MedicineProps }) {
   const [isAdded, setIsAdded] = useState(false);
+  const router = useRouter(); // 👈 Initialize Router
 
   // Add to Cart Function
   const addToCart = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevents navigating to the details page when clicking the button
+    e.preventDefault(); 
     e.stopPropagation();
 
+    // ✅ 1. Check if User is Logged In
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to add items! 🔒");
+      router.push("/login"); // Redirect to Login
+      return;
+    }
+
+    // ✅ 2. Proceed to Add to Cart
     const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
     const existingItem = existingCart.find((item: any) => item.medicineId === medicine.id);
 
@@ -39,11 +50,11 @@ export default function MedicineCard({ medicine }: { medicine: MedicineProps }) 
     }
 
     localStorage.setItem("cart", JSON.stringify(existingCart));
-    window.dispatchEvent(new Event("storage")); // Trigger storage event for Navbar update
+    window.dispatchEvent(new Event("storage")); 
 
-    // Button Animation Logic
+    // Button Animation
     setIsAdded(true);
-    setTimeout(() => setIsAdded(false), 2000); // Revert state after 2 seconds
+    setTimeout(() => setIsAdded(false), 2000); 
   };
 
   return (
@@ -59,7 +70,7 @@ export default function MedicineCard({ medicine }: { medicine: MedicineProps }) 
         
         {/* Main Icon */}
         <div className="text-blue-500 group-hover:scale-110 transition-transform duration-300">
-           <Pill size={64} strokeWidth={1.5} />
+            <Pill size={64} strokeWidth={1.5} />
         </div>
 
         {/* Category Badge */}
@@ -85,7 +96,7 @@ export default function MedicineCard({ medicine }: { medicine: MedicineProps }) 
           <div className="flex flex-col">
             <span className="text-xs text-gray-400">Price</span>
             <span className="text-xl font-bold text-gray-900">
-              ${medicine.price.toFixed(2)}
+              ৳{medicine.price.toFixed(2)}
             </span>
           </div>
 

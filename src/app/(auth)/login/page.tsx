@@ -22,30 +22,36 @@ export default function LoginPage() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setIsLoading(true);
+
     try {
       const res = await api.post("/auth/login", formData);
-      if (res.status === 200) {
-        // Token Save
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
-        
-        toast.success(`Welcome back, ${res.data.user.name}!`);
 
-        // Role Based Redirect 🔀
-        const role = res.data.user.role;
-        
-        // Force reload/redirect to update Navbar state
-        if (role === "ADMIN") {
-          window.location.href = "/dashboard/admin";
-        } else if (role === "SELLER") {
-          window.location.href = "/dashboard/seller";
-        } else {
-          window.location.href = "/dashboard/customer";
-        }
+      // Token & User Data Save
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      toast.success(`Welcome back, ${res.data.user.name}! 🚀`);
+
+      // ✅ Update Navbar State
+      window.dispatchEvent(new Event("storage"));
+
+      // ✅ Updated Redirect Logic
+      const role = res.data.user.role;
+      
+      if (role === "ADMIN") {
+        router.push("/dashboard/admin");
+      } else if (role === "SELLER") {
+        router.push("/dashboard/seller");
+      } else {
+        router.push("/"); // ✅ CUSTOMER -> Home Page
       }
+
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Invalid Email or Password");
-      setIsLoading(false); // Stop loading only on error
+      // Show specific error from backend
+      const errorMsg = err.response?.data?.message || "Invalid Email or Password";
+      toast.error(errorMsg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,7 +66,7 @@ export default function LoginPage() {
         
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-4 shadow-sm">
             <LogIn size={32} />
           </div>
           <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
@@ -79,10 +85,10 @@ export default function LoginPage() {
               <input
                 name="email"
                 type="email"
+                value={formData.email}
                 placeholder="john@example.com"
                 onChange={handleChange}
-                // Updated className: added text-gray-900 for clearer text
-                className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition text-gray-900 placeholder-gray-400"
+                className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition text-gray-900 placeholder-gray-400 font-medium"
                 required
               />
             </div>
@@ -92,7 +98,6 @@ export default function LoginPage() {
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className="block text-sm font-medium text-gray-700">Password</label>
-              <a href="#" className="text-xs text-blue-600 hover:underline">Forgot password?</a>
             </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -101,10 +106,10 @@ export default function LoginPage() {
               <input
                 name="password"
                 type="password"
+                value={formData.password}
                 placeholder="••••••••"
                 onChange={handleChange}
-                // Updated className: added text-gray-900 for clearer text
-                className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition text-gray-900 placeholder-gray-400"
+                className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition text-gray-900 placeholder-gray-400 font-medium"
                 required
               />
             </div>
@@ -114,7 +119,7 @@ export default function LoginPage() {
           <button 
             type="submit" 
             disabled={isLoading}
-            className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-500/30 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+            className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-500/30 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2 transform hover:-translate-y-0.5 duration-200"
           >
             {isLoading ? (
               <>

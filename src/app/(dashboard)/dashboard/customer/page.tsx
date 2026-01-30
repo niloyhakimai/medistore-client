@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "@/utils/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -13,39 +13,58 @@ import {
 export default function CustomerDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false); // For manual refresh loading state
   const router = useRouter();
 
-  // Fetch Orders
-  const fetchOrders = async () => {
+  // ✅ 1. Fetch Orders Function (Optimized)
+  const fetchOrders = useCallback(async (isManual = false) => {
     try {
+      if (isManual) setRefreshing(true);
+      
       const token = localStorage.getItem("token");
       if (!token) {
         router.push("/login");
         return;
       }
+      
       const res = await api.get("/orders");
-      setOrders(res.data.data);
+      
+      // ✅ Sort: Newest First
+      const sortedOrders = res.data.data.sort((a: any, b: any) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      setOrders(sortedOrders);
+
+      if (isManual) toast.success("Orders Updated!");
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+      if (isManual) setRefreshing(false);
     }
-  };
-
-  useEffect(() => {
-    fetchOrders();
   }, [router]);
 
-  // Cancel Order Function (Optional Feature)
+  // ✅ 2. Initial Load + Auto Polling (Every 5 Seconds)
+  useEffect(() => {
+    fetchOrders(); // Initial Fetch
+
+    // Auto-refresh every 5 seconds to get live status updates
+    const interval = setInterval(() => {
+      fetchOrders();
+    }, 5000); 
+
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, [fetchOrders]);
+
+  // Cancel Order Function
   const handleCancelOrder = async (orderId: string) => {
     if(!confirm("Are you sure you want to cancel this order?")) return;
     
     try {
-      // Backend route must exist for this: router.patch('/orders/:id/cancel', cancelOrder)
-      // Assuming you set it up, otherwise this part can be removed
       await api.patch(`/orders/${orderId}/cancel`); 
       toast.success("Order cancelled successfully");
-      fetchOrders(); // Refresh list
+      fetchOrders(true); // Immediate refresh
     } catch (err) {
       toast.error("Failed to cancel order");
     }
@@ -55,54 +74,30 @@ export default function CustomerDashboard() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "PLACED":
-        return {
-          color: "bg-blue-50 text-blue-700 border-blue-200",
-          icon: <Clock size={14} />,
-          label: "Order Placed"
-        };
+        return { color: "bg-blue-50 text-blue-700 border-blue-200", icon: <Clock size={14} />, label: "Order Placed" };
       case "PROCESSING":
-        return {
-          color: "bg-amber-50 text-amber-700 border-amber-200",
-          icon: <RefreshCw size={14} className="animate-spin-slow" />,
-          label: "Processing"
-        };
+        return { color: "bg-amber-50 text-amber-700 border-amber-200", icon: <RefreshCw size={14} className="animate-spin-slow" />, label: "Processing" };
       case "SHIPPED":
-        return {
-          color: "bg-indigo-50 text-indigo-700 border-indigo-200",
-          icon: <Truck size={14} />,
-          label: "Shipped"
-        };
+        return { color: "bg-indigo-50 text-indigo-700 border-indigo-200", icon: <Truck size={14} />, label: "Shipped" };
       case "DELIVERED":
-        return {
-          color: "bg-emerald-50 text-emerald-700 border-emerald-200",
-          icon: <CheckCircle size={14} />,
-          label: "Delivered"
-        };
+        return { color: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: <CheckCircle size={14} />, label: "Delivered" };
       case "CANCELLED":
-        return {
-          color: "bg-red-50 text-red-700 border-red-200",
-          icon: <XCircle size={14} />,
-          label: "Cancelled"
-        };
+        return { color: "bg-red-50 text-red-700 border-red-200", icon: <XCircle size={14} />, label: "Cancelled" };
       default:
-        return {
-          color: "bg-gray-50 text-gray-700 border-gray-200",
-          icon: <Package size={14} />,
-          label: status
-        };
+        return { color: "bg-gray-50 text-gray-700 border-gray-200", icon: <Package size={14} />, label: status };
     }
   };
 
-if (loading) {
-  return (
-    <div className="flex h-screen items-center justify-center bg-gray-50">
-      <div className="flex flex-col items-center gap-4">
-        <Loader2 className="animate-spin text-blue-600" size={48} />
-        <p className="text-gray-500 font-medium">Loading your orders...</p>
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="animate-spin text-blue-600" size={48} />
+          <p className="text-gray-500 font-medium">Loading your orders...</p>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -119,15 +114,28 @@ if (loading) {
               <p className="text-gray-500">Track and manage your recent purchases.</p>
             </div>
           </div>
-          <Link href="/shop" className="hidden sm:flex items-center gap-2 text-blue-600 font-semibold hover:underline">
-            Browse Medicines <ArrowRight size={18} />
-          </Link>
+          
+          <div className="flex items-center gap-3">
+             {/* ✅ Refresh Button */}
+             <button 
+               onClick={() => fetchOrders(true)}
+               disabled={refreshing}
+               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-gray-600 hover:text-blue-600 hover:border-blue-200 transition shadow-sm"
+             >
+               <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
+               {refreshing ? "Updating..." : "Refresh Status"}
+             </button>
+
+             <Link href="/shop" className="hidden sm:flex items-center gap-2 text-blue-600 font-semibold hover:underline px-4">
+               Browse Medicines <ArrowRight size={18} />
+             </Link>
+          </div>
         </div>
 
         {/* Orders List */}
         {orders.length === 0 ? (
           // Empty State
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-12 text-center">
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-12 text-center animate-in fade-in zoom-in duration-300">
             <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400">
               <ShoppingBag size={48} />
             </div>
@@ -144,7 +152,7 @@ if (loading) {
           </div>
         ) : (
           // Order Table
-          <div className="bg-white rounded-2xl shadow-lg shadow-gray-100 border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-lg shadow-gray-100 border border-gray-100 overflow-hidden animate-in slide-in-from-bottom-5 duration-500">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -207,7 +215,7 @@ if (loading) {
 
                         {/* Status Badge */}
                         <td className="py-5 px-6">
-                          <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border ${statusStyle.color}`}>
+                          <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border transition-all duration-300 ${statusStyle.color}`}>
                             {statusStyle.icon}
                             {statusStyle.label}
                           </span>
